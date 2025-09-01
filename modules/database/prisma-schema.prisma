@@ -137,8 +137,8 @@ model Review {
   card Card @relation(fields: [cardId], references: [id], onDelete: Cascade)
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
 
-  // Validation
-  @@check(grade >= 1 && grade <= 5, map: "valid_grade_range")
+  // Note: Grade validation (1-5) should be handled at application level
+  // Prisma doesn't support CHECK constraints in schema definition
   
   // Indexes for Analytics
   @@index([cardId, reviewDate]) // Card performance over time
