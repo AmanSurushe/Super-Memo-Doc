@@ -97,7 +97,7 @@ Return as JSON array:
 interface ManualCardForm {
   question: string;     // max 2000 characters
   answer: string;       // max 5000 characters
-  label: string;        // with autocomplete
+  deck: string;         // with autocomplete
   difficulty?: number;  // optional 1-5 scale
   tags?: string[];      // optional categorization
 }
@@ -105,7 +105,7 @@ interface ManualCardForm {
 
 **Features:**
 - Simple question/answer form with validation
-- Label assignment with autocomplete from existing labels
+- Deck assignment with autocomplete from existing decks
 - Character limits with real-time feedback
 - Preview mode before saving
 - Draft saving functionality
@@ -134,12 +134,12 @@ interface GeneratedCardPreview {
 - Grid view with card previews
 - List view with detailed information
 - Search across question and answer content
-- Filter by labels, difficulty, creation date
+- Filter by decks, difficulty, creation date
 
 **Edit Operations:**
 - In-place editing of question and answer
-- Label reassignment with dropdown
-- Bulk operations (delete, relabel, archive)
+- Deck reassignment with dropdown
+- Bulk operations (delete, reassign deck, archive)
 - Version history tracking (optional)
 
 ### 4. Deck & Review System (Play Mode) 🎮
@@ -202,12 +202,12 @@ interface ReviewSession {
 - Motivational messages for streaks
 - Session summary with insights
 
-### 5. Label Management System 🏷️
+### 5. Deck Management System 🗂️
 **Status**: New Development Required
 
-#### Label Operations
+#### Deck Operations
 ```typescript
-interface Label {
+interface Deck {
   id: number;
   name: string;
   color: string;        // from predefined color palette
@@ -218,22 +218,22 @@ interface Label {
 ```
 
 **Management Features:**
-- Create new labels with color coding
-- Edit label names and colors
-- Delete labels with card reassignment
-- View card count per label
+- Create new decks with color coding
+- Edit deck names and colors
+- Delete decks with card reassignment
+- View card count per deck
 - Sort by usage frequency
 
 #### Review Filtering System
 **Filter Options:**
 - **All Cards**: Mixed review of all due cards
-- **By Label**: Focus on specific category
-- **Multi-Label**: Combine multiple categories
+- **By Deck**: Focus on specific category
+- **Multi-Deck**: Combine multiple categories
 - **Custom Sets**: User-defined card combinations
 
 **Smart Filtering:**
 - Due cards prioritization
-- Balanced selection across labels
+- Balanced selection across decks
 - Difficulty-based distribution
 - Recent performance consideration
 
@@ -291,6 +291,29 @@ interface DashboardStats {
 ## 🛠️ Technical Implementation
 
 ### Backend Architecture (NestJS)
+
+#### Additional Deck Management Module
+```
+src/
+├── decks/                    # Comprehensive deck management system
+│   ├── decks.module.ts
+│   ├── decks.service.ts
+│   ├── decks.controller.ts
+│   ├── entities/
+│   │   └── deck.entity.ts
+│   ├── dto/
+│   │   ├── create-deck.dto.ts
+│   │   ├── update-deck.dto.ts
+│   │   ├── duplicate-deck.dto.ts
+│   │   ├── merge-decks.dto.ts
+│   │   └── split-deck.dto.ts
+│   ├── templates/
+│   │   ├── deck-templates.service.ts
+│   │   └── default-templates.ts
+│   └── analytics/
+│       ├── deck-analytics.service.ts
+│       └── deck-stats.dto.ts
+```
 ```
 src/
 ├── main.ts                    # Application entry point
@@ -436,11 +459,15 @@ src/
 │   │   ├── GradeDistribution.tsx # Grade analysis
 │   │   ├── ReviewCalendar.tsx   # Heatmap calendar
 │   │   └── ProgressMetrics.tsx  # Progress indicators
-│   ├── labels/
-│   │   ├── LabelManager.tsx     # Label CRUD interface
-│   │   ├── LabelFilter.tsx      # Filter by labels
-│   │   ├── LabelSelector.tsx    # Label selection dropdown
-│   │   └── LabelBadge.tsx       # Label display component
+│   ├── decks/
+│   │   ├── DeckManager.tsx      # Deck CRUD interface
+│   │   ├── DeckFilter.tsx       # Filter by decks
+│   │   ├── DeckSelector.tsx     # Deck selection dropdown
+│   │   ├── DeckBadge.tsx        # Deck display component
+│   │   ├── DeckCreator.tsx      # New deck creation form
+│   │   ├── DeckEditor.tsx       # Deck editing interface
+│   │   ├── DeckAnalytics.tsx    # Deck-specific statistics
+│   │   └── DeckTemplates.tsx    # Deck template selection
 │   └── common/
 │       ├── Button.tsx           # Reusable button component
 │       ├── Input.tsx            # Form input component
@@ -452,7 +479,7 @@ src/
 │   ├── useCards.ts         # Card operations and state
 │   ├── useReview.ts        # Review session management
 │   ├── useStats.ts         # Statistics data fetching
-│   ├── useLabels.ts        # Label management
+│   ├── useDecks.ts         # Deck management
 │   └── useLocalStorage.ts  # Browser storage utilities
 ├── context/                # React context providers
 │   ├── AuthContext.tsx     # Global authentication state
@@ -486,7 +513,7 @@ src/
 ### Database Implementation
 Using the existing Prisma schema with focus on core tables:
 - **User**: Authentication and summary statistics
-- **Card**: SM-15 algorithm fields and content
+- **Card**: SM-15 algorithm fields and content with deck associations
 - **Review**: Complete review history tracking
 - **UserStatistic**: Daily performance metrics
 
@@ -555,7 +582,7 @@ CREATE INDEX idx_cards_content ON cards USING GIN(to_tsvector('english', front_c
 │ └─────────────────────────────────────────────────────────┘ │
 │ 📊 Content: 1,247 characters / 50,000 limit               │
 │                                                             │
-│ 🏷️ Label: [React Fundamentals ▼] [+ New Label]           │
+│ 🗂️ Deck: [React Fundamentals ▼] [+ New Deck]            │
 │                                                             │
 │ ┌─────────────────────────────────────────────────────────┐ │
 │ │               [🚀 Generate Cards]                       │ │
@@ -653,7 +680,7 @@ POST   /files/process            // Process uploaded file
 ```typescript
 // Review session management
 GET    /cards/due                // Cards due for review
-GET    /cards/due/count          // Count of due cards by label
+GET    /cards/due/count          // Count of due cards by deck
 POST   /reviews/start-session    // Initialize review session
 POST   /reviews/grade            // Submit grade for card
 PUT    /reviews/update-session   // Update session progress
@@ -672,14 +699,21 @@ GET    /stats/trends             // Long-term trend analysis
 GET    /stats/cards/:id/history  // Individual card performance
 ```
 
-### Label Management Endpoints
+### Deck Management Endpoints
 ```typescript
-// Label operations
-GET    /labels                   // User's labels
-POST   /labels                   // Create new label
-PUT    /labels/:id               // Update label
-DELETE /labels/:id               // Delete label
-GET    /labels/usage             // Label usage statistics
+// Deck operations
+GET    /decks                    // User's decks
+POST   /decks                    // Create new deck
+PUT    /decks/:id                // Update deck
+DELETE /decks/:id                // Delete deck
+GET    /decks/:id                // Get specific deck details
+POST   /decks/:id/duplicate      // Duplicate deck
+POST   /decks/:id/archive        // Archive/unarchive deck
+POST   /decks/merge              // Merge multiple decks
+POST   /decks/:id/split          // Split deck into multiple decks
+GET    /decks/templates          // Available deck templates
+GET    /decks/:id/analytics      // Deck-specific analytics
+GET    /decks/usage              // Deck usage statistics
 ```
 
 ## 🎯 Success Criteria
@@ -689,7 +723,7 @@ GET    /labels/usage             // Label usage statistics
 2. **AI Generation**: Generate 5-10 quality cards from text/file in <30 seconds
 3. **Manual Creation**: Create, edit, and delete cards with validation
 4. **Review System**: Smooth, engaging card review with SM-15 scheduling
-5. **Label Organization**: Create and manage labels for card organization
+5. **Deck Organization**: Create and manage decks for card organization
 6. **Performance Tracking**: Comprehensive statistics and progress visualization
 7. **Data Persistence**: All user data properly saved and retrieved
 8. **Responsive Design**: Works on desktop and mobile devices
@@ -827,7 +861,7 @@ GET    /labels/usage             // Label usage statistics
 2. **AI Card Generation**: Text and file input with OpenRouter integration
 3. **Manual Card Creation**: Full CRUD operations with validation
 4. **Review System**: Engaging interface with SM-15 algorithm
-5. **Label Management**: Organization and filtering system
+5. **Deck Management**: Organization and filtering system
 6. **Statistics Dashboard**: Comprehensive performance tracking
 
 ### Technical Assets

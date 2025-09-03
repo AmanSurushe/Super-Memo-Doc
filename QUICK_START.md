@@ -72,7 +72,7 @@ npm run dev
 
 1. Navigate to "Create Card" or use the quick action on dashboard
 2. Add a question (front) and answer (back)
-3. Optionally add a label for organization
+3. Optionally add a deck for organization
 4. Save the card
 
 ### Start Learning

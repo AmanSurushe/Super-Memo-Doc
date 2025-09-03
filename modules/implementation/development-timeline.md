@@ -49,7 +49,7 @@ Comprehensive project schedule with milestones, dependencies, and resource alloc
 - [ ] AI card generation interface
 - [ ] Manual card creation form
 - [ ] Card library with search/filter
-- [ ] Label management system
+- [ ] Deck management system
 - [ ] File upload UI component
 
 **Days 12-13: Review System**
@@ -153,7 +153,7 @@ Comprehensive project schedule with milestones, dependencies, and resource alloc
 
 #### Days 36-38: Community Infrastructure
 **Backend Team:**
-- [ ] Label privacy management system
+- [ ] Deck privacy management system
 - [ ] Community card sharing APIs
 - [ ] Rating and feedback system
 - [ ] Card import/export functionality

@@ -30,7 +30,7 @@ Create a memory enhancement platform specifically designed for software engineer
 - Secure email/password authentication with JWT tokens
 - Personal card collections (each user sees only their own content)
 - Individual performance tracking and analytics
-- Private label/category systems per user
+- Private deck/category systems per user
 
 **Technical Implementation**: 
 - Existing User model with proper foreign key relationships
@@ -203,7 +203,7 @@ Response:
 2. AI generates multiple card options
 3. User reviews cards in read-only preview
 4. User selects desired cards via checkboxes
-5. User assigns label/category to selected batch
+5. User assigns deck/category to selected batch
 6. Cards are saved to database with SM-15 defaults
 
 ---
@@ -213,7 +213,7 @@ Response:
 
 **Requirements**:
 - Simple form interface with question and answer fields
-- Label/category assignment
+- Deck/category assignment
 - Immediate save to personal collection
 - Option to review newly created card immediately
 - Character limits and validation
@@ -228,7 +228,7 @@ Request Body:
 {
   frontContent: string;    // Question/prompt
   backContent: string;     // Answer/explanation  
-  label: string;          // Category for organization
+  deck: string;           // Category for organization
   sourceType: 'manual';   // Hardcoded for manual cards
 }
 
@@ -253,11 +253,11 @@ Response:
 **New Requirements**:
 - **Auto-answer reveal**: Answer appears automatically after grade submission
 - **Next button navigation**: Seamless transition between cards
-- **Label filtering**: Review specific categories or all due cards
+- **Deck filtering**: Review specific categories or all due cards
 - **Progress indicators**: Cards remaining in current session
 
 **Enhanced Review Workflow**:
-1. User selects label filter (optional) or reviews all due cards
+1. User selects deck filter (optional) or reviews all due cards
 2. Card appears showing question only
 3. User thinks of answer and clicks "Show Answer"
 4. Answer appears with 1-5 grade buttons
@@ -272,14 +272,14 @@ Response:
 
 **Features**:
 - Personal card filtering using existing `(userId, nextReviewDate)` indexes
-- Label-based filtering with dropdown selection
+- Deck-based filtering with dropdown selection
 - "All My Cards" option for comprehensive review
 - Due cards prioritized by SM-15 scheduling algorithm
 - Optimized queries for fast performance
 
 **API Enhancement**:
 ```typescript
-GET /api/cards/due?label={optional}
+GET /api/cards/due?deck={optional}
 Authorization: Bearer <jwt_token>
 
 Response:
@@ -290,10 +290,10 @@ Response:
     backContent: string;
     aFactor: number;
     intervalDays: number;
-    label: string;
+    deck: string;
   }>;
   totalCount: number;
-  userLabels: string[];  // Available labels for filtering
+  userDecks: string[];   // Available decks for filtering
 }
 ```
 
@@ -302,16 +302,16 @@ Response:
 ### 6. Community Sharing & Collaborative Learning 🤝
 **Status**: 🔧 **NEW DEVELOPMENT REQUIRED**
 
-#### 6.1 Label-Based Sharing System
+#### 6.1 Deck-Based Sharing System
 **Requirements**:
-- **Privacy Control**: Users can mark entire labels/categories as public or private
-- **Granular Sharing**: Individual cards within a label can be excluded from sharing
-- **Community Browse**: Public card collections searchable by label/topic
+- **Privacy Control**: Users can mark entire decks/categories as public or private
+- **Granular Sharing**: Individual cards within a deck can be excluded from sharing
+- **Community Browse**: Public card collections searchable by deck/topic
 - **Import System**: Users can copy community cards to their personal collection
 
 **Privacy Levels**:
 ```typescript
-enum LabelPrivacyLevel {
+enum DeckPrivacyLevel {
   PRIVATE = 'private',        // Only visible to owner (default)
   TEAM = 'team',             // Visible to team members only  
   COMMUNITY = 'community'    // Publicly available in community
@@ -334,14 +334,14 @@ ALTER TABLE cards ADD COLUMN content_attribution TEXT;
 -- content_attribution: "Generated from React Official Documentation + YouTube: 'Advanced Hooks Patterns'"
 
 -- New tables for community features
-CREATE TABLE label_privacy_settings (
+CREATE TABLE deck_privacy_settings (
   id SERIAL PRIMARY KEY,
   user_id INTEGER REFERENCES users(id) ON DELETE CASCADE,
-  label VARCHAR(255) NOT NULL,
+  deck VARCHAR(255) NOT NULL,
   privacy_level VARCHAR(20) DEFAULT 'private',
   created_at TIMESTAMP DEFAULT NOW(),
   updated_at TIMESTAMP DEFAULT NOW(),
-  UNIQUE(user_id, label)
+  UNIQUE(user_id, deck)
 );
 
 CREATE TABLE community_ratings (
@@ -371,7 +371,7 @@ CREATE TABLE community_card_imports (
 - **Personal Rating History**: Users can see their rating contributions
 
 **Rating Workflow**:
-1. User browses community cards by label/topic
+1. User browses community cards by deck/topic
 2. User reviews card content and rates quality (1-5 stars)
 3. Optional feedback provided for card creator
 4. Ratings aggregate to show community consensus
@@ -379,7 +379,7 @@ CREATE TABLE community_card_imports (
 
 #### 6.3 Community Discovery Features
 **Requirements**:
-- **Browse by Label**: Filter community cards by technical topics
+- **Browse by Deck**: Filter community cards by technical topics
 - **Search Functionality**: Find cards by keywords in questions/answers
 - **Quality Sorting**: Sort by highest rated, most recent, most imported
 - **Creator Attribution**: Show original creator (with privacy options)
@@ -387,7 +387,7 @@ CREATE TABLE community_card_imports (
 
 **API Specifications**:
 ```typescript
-GET /api/community/cards?label={topic}&sort={rating|recent|popular}
+GET /api/community/cards?deck={topic}&sort={rating|recent|popular}
 Authorization: Bearer <jwt_token>
 
 Response:
@@ -396,7 +396,7 @@ Response:
     id: number;
     frontContent: string;
     backContent: string;
-    label: string;
+    deck: string;
     creatorName: string;        // Anonymous option available
     averageRating: number;      // 0.0 - 5.0
     ratingCount: number;
@@ -422,7 +422,7 @@ Response:
     verified: boolean;          // Community-verified for accuracy
   }>;
   totalCount: number;
-  availableLabels: string[];
+  availableDecks: string[];
   qualityFilters: {            // Enable filtering by quality metrics
     minRating: number;
     minQualityScore: number;
@@ -446,24 +446,24 @@ Authorization: Bearer <jwt_token>
 
 Request Body:
 {
-  targetLabel: string;  // Label to assign in personal collection
+  targetDeck: string;   // Deck to assign in personal collection
 }
 ```
 
-#### 6.4 Label Privacy Management
+#### 6.4 Deck Privacy Management
 **Requirements**:
-- **Label Settings Page**: Manage privacy level for each label
-- **Bulk Operations**: Set multiple labels to community/private at once
-- **Visual Indicators**: Clear UI showing which labels are shared
-- **Share Analytics**: Show view counts and import statistics for shared labels
+- **Deck Settings Page**: Manage privacy level for each deck
+- **Bulk Operations**: Set multiple decks to community/private at once
+- **Visual Indicators**: Clear UI showing which decks are shared
+- **Share Analytics**: Show view counts and import statistics for shared decks
 
 **Privacy Management Interface**:
 ```typescript
-interface LabelPrivacySettings {
-  label: string;
+interface DeckPrivacySettings {
+  deck: string;
   cardCount: number;
   privacyLevel: 'private' | 'team' | 'community';
-  sharedCardCount: number;     // How many cards in this label are shared
+  sharedCardCount: number;     // How many cards in this deck are shared
   communityViews: number;      // Total community views
   importCount: number;         // How many users imported cards
   averageRating: number;       // Average rating for shared cards
@@ -478,7 +478,7 @@ interface LabelPrivacySettings {
 - **Thank You System**: Users can thank contributors for helpful cards
 
 **Contributor Dashboard**:
-- Total cards shared across all labels
+- Total cards shared across all decks
 - Average community rating for your content
 - Number of users who imported your cards
 - Feedback and thank you messages from community
@@ -500,7 +500,7 @@ interface LabelPrivacySettings {
 **Additional Metrics for Team Use**:
 - Card creation statistics (manual vs AI-generated)
 - Content source effectiveness (which materials produce better retention)
-- Label/category performance analysis
+- Deck/category performance analysis
 - Team knowledge coverage (aggregated anonymously)
 
 ## Technical Architecture
@@ -543,12 +543,12 @@ ALTER TABLE cards ADD COLUMN ai_generation_metadata JSONB DEFAULT '{}';
 - `POST /api/cards/batch-create` - Save selected AI cards with attribution
 - `POST /api/cards/manual` - Manual card creation
 - `POST /api/files/upload` - File upload and text extraction
-- `GET /api/cards/labels` - User's available labels
+- `GET /api/cards/decks` - User's available decks
 - `GET /api/community/cards` - Browse community cards with quality metrics
 - `POST /api/community/cards/{id}/rate` - Rate community cards
 - `POST /api/community/cards/{id}/import` - Import community cards
 - `POST /api/community/cards/{id}/verify` - Community verification of accuracy
-- `PUT /api/labels/{label}/privacy` - Set label privacy level
+- `PUT /api/decks/{deck}/privacy` - Set deck privacy level
 
 ### Frontend Architecture  
 **Framework**: Next.js with TypeScript (as documented)
@@ -567,7 +567,7 @@ ALTER TABLE cards ADD COLUMN ai_generation_metadata JSONB DEFAULT '{}';
 - `<FileUploader />` - Drag-and-drop file processing
 - `<CommunityBrowser />` - Browse community cards with quality filtering
 - `<SourceAttribution />` - Display content sources and attribution
-- `<LabelPrivacySettings />` - Manage label sharing preferences
+- `<DeckPrivacySettings />` - Manage deck sharing preferences
 - `<CommunityRating />` - Rate and review community cards with quality feedback
 - `<ContributorDashboard />` - Track sharing impact and recognition
 - `<ContentVerification />` - Community verification system for accuracy
@@ -590,7 +590,7 @@ ALTER TABLE cards ADD COLUMN ai_generation_metadata JSONB DEFAULT '{}';
 **Week 3**:
 - [ ] Quality metrics calculation and storage
 - [ ] Source attribution system
-- [ ] Enhanced card retrieval with label filtering
+- [ ] Enhanced card retrieval with deck filtering
 - [ ] API testing and error handling
 - [ ] Integration with existing SM-15 system
 
@@ -607,20 +607,20 @@ ALTER TABLE cards ADD COLUMN ai_generation_metadata JSONB DEFAULT '{}';
 - [ ] Quality indicators and source attribution display
 - [ ] Manual card creation form
 - [ ] Enhanced review interface with auto-answer reveal
-- [ ] Label filtering dropdown
+- [ ] Deck filtering dropdown
 - [ ] Next button navigation and progress indicators
 
 ### Phase 3: Community Features (Weeks 5-7)
 **Week 5-6**:
 - [ ] Database schema extensions for community and source attribution features
-- [ ] Label privacy settings API and management
+- [ ] Deck privacy settings API and management
 - [ ] Community card browsing with quality metrics and source filtering
 - [ ] Card rating system implementation with quality feedback
 
 **Week 6-7**:
 - [ ] Community discovery interface with source attribution display
 - [ ] Content verification system for accuracy checking
-- [ ] Label privacy management UI
+- [ ] Deck privacy management UI
 - [ ] Card import functionality with source preservation
 - [ ] Contributor dashboard with quality impact metrics
 - [ ] Source attribution and quality indicator components
@@ -663,8 +663,8 @@ ALTER TABLE cards ADD COLUMN ai_generation_metadata JSONB DEFAULT '{}';
 - **Current Capability**: Complete interval history in reviewHistory JSON
 
 ### Community Engagement
-- **Target**: 70% of users contribute at least one public label within 60 days
-- **Measurement**: label_privacy_settings table with privacy_level = 'community'
+- **Target**: 70% of users contribute at least one public deck within 60 days
+- **Measurement**: deck_privacy_settings table with privacy_level = 'community'
 - **Implementation**: New community analytics dashboard
 
 ### Knowledge Sharing Quality
@@ -673,8 +673,8 @@ ALTER TABLE cards ADD COLUMN ai_generation_metadata JSONB DEFAULT '{}';
 - **Implementation**: Rating aggregation in community_ratings table
 
 ### Content Reuse & Impact
-- **Target**: Each shared label imported by average of 3+ team members
-- **Measurement**: community_card_imports table aggregation by label
+- **Target**: Each shared deck imported by average of 3+ team members
+- **Measurement**: community_card_imports table aggregation by deck
 - **Implementation**: Import tracking and impact analytics
 
 ### Collaborative Learning
@@ -752,7 +752,7 @@ This PRD leverages the exceptional foundation of the existing SuperMemo SM-15 sy
 The sophisticated existing system (SM-15 algorithm, analytics, user management) reduces development risk and timeline, allowing focus on the new AI, interface, and community features that will transform technical learning for engineering teams.
 
 ### Key Innovation: Community-Driven Learning
-The addition of label-based sharing with privacy controls creates a unique learning ecosystem where:
+The addition of deck-based sharing with privacy controls creates a unique learning ecosystem where:
 - Teams can collaboratively build knowledge bases around specific technologies
 - High-quality content is surfaced through peer rating systems  
 - Individual learning remains private while enabling selective knowledge sharing

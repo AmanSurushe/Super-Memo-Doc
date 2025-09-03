@@ -14,7 +14,7 @@ Detailed specifications for all core features of the SuperMemo AI Card Generatio
 1. **Multi-Source AI Card Generation** - URL, YouTube, and hybrid content processing
 2. **Manual Card Creation** - Simple individual card creation interface
 3. **Enhanced Review Interface** - Auto-answer reveal and improved navigation
-4. **Community Sharing System** - Label-based sharing with privacy controls
+4. **Community Sharing System** - Deck-based sharing with privacy controls
 5. **Quality Assurance** - AI metrics and community verification
 
 ---
@@ -143,7 +143,7 @@ ALTER TABLE cards ADD COLUMN content_attribution TEXT;
 2. **Content Processing**: AI extracts and processes content with loading indicators
 3. **Card Preview**: Generated cards displayed with quality metrics and source attribution
 4. **Card Selection**: User selects desired cards using checkboxes (no editing allowed)
-5. **Label Assignment**: User assigns category/label to selected cards
+5. **Deck Assignment**: User assigns category/deck to selected cards
 6. **Save & Schedule**: Cards saved to personal collection with SM-15 defaults
 
 ### Acceptance Criteria
@@ -172,7 +172,7 @@ Provide a simple, fast interface for users to create individual flashcards manua
 #### Simple Card Creation Form
 - **Question Field**: Multi-line text area (max 2000 characters)
 - **Answer Field**: Multi-line text area (max 5000 characters)  
-- **Label Field**: Text input with autocomplete from user's existing labels
+- **Deck Field**: Text input with autocomplete from user's existing decks
 - **Preview Mode**: Show card appearance before saving
 - **Immediate Save**: Single-click save with confirmation
 
@@ -192,7 +192,7 @@ Content-Type: application/json
 Request: {
   frontContent: string;
   backContent: string; 
-  label: string;
+  deck: string;
   sourceType: 'manual';
 }
 
@@ -209,23 +209,23 @@ Response: {
 interface ManualCardForm {
   question: string;
   answer: string;
-  label: string;
+  deck: string;
   isPreviewMode: boolean;
-  availableLabels: string[];
+  availableDecks: string[];
 }
 
 // Form validation rules
 const validation = {
   question: { required: true, maxLength: 2000 },
   answer: { required: true, maxLength: 5000 },
-  label: { required: true, pattern: /^[a-zA-Z0-9\s_-]+$/ }
+  deck: { required: true, pattern: /^[a-zA-Z0-9\s_-]+$/ }
 };
 ```
 
 ### User Experience Flow
 1. **Access Form**: Click "Create Card" → "Manual Card" option
 2. **Fill Content**: Enter question and answer with real-time character count
-3. **Assign Label**: Type or select from existing labels with autocomplete
+3. **Assign Deck**: Type or select from existing decks with autocomplete
 4. **Preview**: Optional preview of card appearance
 5. **Save**: Single click save with success confirmation
 6. **Next Action**: Option to create another card or start reviewing
@@ -233,7 +233,7 @@ const validation = {
 ### Acceptance Criteria
 - [ ] Form validates input and prevents submission of empty fields
 - [ ] Character limits enforced with visual indicators
-- [ ] Label autocomplete from user's existing labels
+- [ ] Deck autocomplete from user's existing decks
 - [ ] Preview mode accurately reflects final card appearance
 - [ ] Cards immediately available in review queue with SM-15 scheduling
 - [ ] Form resets after successful submission for batch creation
@@ -260,7 +260,7 @@ Improve the existing review system with auto-answer reveal, smooth navigation, a
 
 #### Review Session Features
 - **Smart Batching**: Group due cards into manageable review sessions (default 20 cards)
-- **Label Filtering**: Option to review specific categories or all due cards
+- **Deck Filtering**: Option to review specific categories or all due cards
 - **Performance Feedback**: Real-time accuracy and timing statistics
 - **Session Summary**: Review session results with key metrics
 
@@ -268,7 +268,7 @@ Improve the existing review system with auto-answer reveal, smooth navigation, a
 
 #### Enhanced Review API
 ```typescript
-GET /api/cards/due?label={optional}&limit={20}
+GET /api/cards/due?deck={optional}&limit={20}
 Authorization: Bearer <jwt_token>
 
 Response: {
@@ -278,14 +278,14 @@ Response: {
     backContent: string;
     aFactor: number;
     intervalDays: number;
-    label: string;
+    deck: string;
     lastReviewedAt?: string;
   }>;
   sessionMetadata: {
     totalDueCards: number;
     sessionSize: number;
     estimatedTime: number; // minutes
-    availableLabels: string[];
+    availableDecks: string[];
   };
 }
 
@@ -346,7 +346,7 @@ interface ReviewSession {
 - [ ] Answer appears automatically after grade submission without additional clicks
 - [ ] Smooth transitions between cards with loading states
 - [ ] Progress bar accurately shows session completion
-- [ ] Label filtering works with existing card data
+- [ ] Deck filtering works with existing card data
 - [ ] Session statistics update in real-time
 - [ ] SM-15 algorithm calculations remain unchanged and accurate
 
@@ -355,7 +355,7 @@ interface ReviewSession {
 ## Feature 4: Community Sharing System 🤝
 
 ### Purpose
-Enable selective knowledge sharing through label-based privacy controls, peer rating, and quality assurance while maintaining personal learning privacy.
+Enable selective knowledge sharing through deck-based privacy controls, peer rating, and quality assurance while maintaining personal learning privacy.
 
 ### User Stories
 - **As a team lead**, I want to share my "React Best Practices" cards with my team but keep my "Personal Development" cards private
@@ -364,7 +364,7 @@ Enable selective knowledge sharing through label-based privacy controls, peer ra
 
 ### Functional Requirements
 
-#### Label-Based Privacy System
+#### Deck-Based Privacy System
 ```typescript
 enum PrivacyLevel {
   PRIVATE = 'private',        // Default: only owner can see
@@ -372,18 +372,18 @@ enum PrivacyLevel {
   COMMUNITY = 'community'    // Publicly available
 }
 
-interface LabelPrivacySettings {
-  label: string;
+interface DeckPrivacySettings {
+  deck: string;
   privacyLevel: PrivacyLevel;
   cardCount: number;
-  sharedCardCount: number;    // Cards actually shared within this label
+  sharedCardCount: number;    // Cards actually shared within this deck
   communityViews: number;     // View statistics
   importCount: number;        // How many users imported these cards
 }
 ```
 
 #### Community Discovery & Rating
-- **Browse by Label**: Filter community cards by technical topics
+- **Browse by Deck**: Filter community cards by technical topics
 - **Search Functionality**: Find cards by keywords in questions/answers
 - **Quality Sorting**: Sort by rating, recency, import popularity
 - **5-Star Rating System**: Rate cards with optional feedback
@@ -391,7 +391,7 @@ interface LabelPrivacySettings {
 
 #### Card Import System
 - **Selective Import**: Choose specific cards from community sets
-- **Label Assignment**: Assign imported cards to personal labels
+- **Deck Assignment**: Assign imported cards to personal decks
 - **SM-15 Integration**: Imported cards start with user's personal SM-15 parameters
 - **Source Preservation**: Track original creator and import history
 
@@ -399,15 +399,15 @@ interface LabelPrivacySettings {
 
 #### Database Schema Extensions
 ```sql
--- Label privacy management
-CREATE TABLE label_privacy_settings (
+-- Deck privacy management
+CREATE TABLE deck_privacy_settings (
   id SERIAL PRIMARY KEY,
   user_id INTEGER REFERENCES users(id) ON DELETE CASCADE,
-  label VARCHAR(255) NOT NULL,
+  deck VARCHAR(255) NOT NULL,
   privacy_level VARCHAR(20) DEFAULT 'private',
   created_at TIMESTAMP DEFAULT NOW(),
   updated_at TIMESTAMP DEFAULT NOW(),
-  UNIQUE(user_id, label)
+  UNIQUE(user_id, deck)
 );
 
 -- Community ratings
@@ -439,13 +439,13 @@ ALTER TABLE cards ADD COLUMN community_rating_count INTEGER DEFAULT 0;
 #### Community API Endpoints
 ```typescript
 // Browse community cards
-GET /api/community/cards?label={topic}&sort={rating|recent|popular}&limit={20}
+GET /api/community/cards?deck={topic}&sort={rating|recent|popular}&limit={20}
 Response: {
   communityCards: Array<{
     id: number;
     frontContent: string;
     backContent: string;
-    label: string;
+    deck: string;
     creatorName: string;
     averageRating: number;
     ratingCount: number;
@@ -456,7 +456,7 @@ Response: {
     verified: boolean;
   }>;
   totalCount: number;
-  availableLabels: string[];
+  availableDecks: string[];
 }
 
 // Rate community card
@@ -466,11 +466,11 @@ Response: { success: boolean; updatedRating: number; }
 
 // Import community card
 POST /api/community/cards/{cardId}/import  
-Request: { targetLabel: string; }
+Request: { targetDeck: string; }
 Response: { success: boolean; newCardId: number; }
 
-// Manage label privacy
-PUT /api/labels/{label}/privacy
+// Manage deck privacy
+PUT /api/decks/{deck}/privacy
 Request: { privacyLevel: PrivacyLevel; }
 Response: { success: boolean; affectedCards: number; }
 ```
@@ -478,20 +478,20 @@ Response: { success: boolean; affectedCards: number; }
 ### User Experience Flow
 
 #### Sharing Workflow
-1. **Label Management**: User navigates to "Privacy Settings" page
-2. **Privacy Selection**: Choose privacy level for each label (private/team/community)
+1. **Deck Management**: User navigates to "Privacy Settings" page
+2. **Privacy Selection**: Choose privacy level for each deck (private/team/community)
 3. **Share Confirmation**: System shows card count and impact of sharing decision
 4. **Publication**: Cards become available in community with attribution
 
 #### Discovery Workflow  
 1. **Community Browse**: User accesses "Community Cards" section
-2. **Filter & Search**: Select topic labels, search keywords, sort by quality
+2. **Filter & Search**: Select topic decks, search keywords, sort by quality
 3. **Card Preview**: View cards with ratings, source attribution, and quality metrics
-4. **Import Selection**: Choose cards to import and assign to personal labels
+4. **Import Selection**: Choose cards to import and assign to personal decks
 5. **Integration**: Imported cards appear in personal review queue with SM-15 scheduling
 
 ### Acceptance Criteria
-- [ ] Label privacy settings control card visibility accurately
+- [ ] Deck privacy settings control card visibility accurately
 - [ ] Community cards display with all quality metrics and attribution
 - [ ] Rating system updates averages correctly and prevents duplicate ratings
 - [ ] Import process creates new cards in user's collection with preserved sources

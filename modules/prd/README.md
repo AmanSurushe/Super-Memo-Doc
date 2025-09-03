@@ -41,7 +41,7 @@ Transform any technical content into personalized flashcards:
 
 ### Community-Driven Learning
 Foster collaborative knowledge sharing while maintaining privacy:
-- **Label-Based Sharing**: Selective sharing with granular privacy controls
+- **Deck-Based Sharing**: Selective sharing with granular privacy controls
 - **Peer Rating System**: 5-star rating with quality feedback
 - **Content Verification**: Community accuracy checking and moderation
 - **Contributor Recognition**: Badges, impact metrics, and leaderboards

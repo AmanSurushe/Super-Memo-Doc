@@ -218,7 +218,7 @@ Request Body:
     timestampSections?: Array<{
       start: number; // seconds
       end: number;   // seconds
-      label?: string; // optional description
+      deck?: string; // optional description
     }>;
     transcriptLanguage?: string;
   };
@@ -251,7 +251,7 @@ Response:
       startTime: number;
       endTime: number;
       content: string;
-      label?: string;
+      deck?: string;
     }>;
   };
   processingDetails: {
@@ -340,7 +340,7 @@ Request Body:
     content?: string;
     url?: string;
     fileData?: string; // Base64 encoded
-    label?: string; // Optional label for this specific source
+    deck?: string; // Optional deck for this specific source
   }>;
   processingOptions: {
     preferredCardCount: number;

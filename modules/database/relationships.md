@@ -160,7 +160,7 @@ graph TD
 **SQL Operations**:
 ```sql
 INSERT INTO cards (
-  user_id, front_content, back_content, label,
+  user_id, front_content, back_content, deck,
   a_factor, repetition_count, interval_days, next_review_date
 ) VALUES (
   123, 'What is the capital of France?', 'Paris', 'geography',

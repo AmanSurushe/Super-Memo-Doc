@@ -95,10 +95,10 @@ Create a polished, engaging user experience with advanced interfaces, animations
 **Status**: 🔧 New Development Required
 
 ### 🎯 Objective
-Establish basic community features with label-based sharing, privacy controls, and content discovery.
+Establish basic community features with deck-based sharing, privacy controls, and content discovery.
 
 ### 📋 Key Features
-- **Label-Based Privacy System**: Granular sharing controls
+- **Deck-Based Privacy System**: Granular sharing controls
 - **Community Card Browsing**: Discover shared content by topics
 - **Basic Rating System**: 5-star rating with feedback
 - **Card Import Functionality**: Copy community cards to personal collection
@@ -107,10 +107,10 @@ Establish basic community features with label-based sharing, privacy controls, a
 ### 🛠️ Technical Implementation
 ```sql
 -- Community sharing database extensions
-CREATE TABLE label_privacy_settings (
+CREATE TABLE deck_privacy_settings (
   id SERIAL PRIMARY KEY,
   user_id INTEGER REFERENCES users(id),
-  label VARCHAR(255) NOT NULL,
+  deck VARCHAR(255) NOT NULL,
   privacy_level VARCHAR(20) DEFAULT 'private'
 );
 
@@ -123,9 +123,9 @@ CREATE TABLE community_ratings (
 ```
 
 ### 📈 Success Metrics
-- 70% of users create at least one public label within 30 days
+- 70% of users create at least one public deck within 30 days
 - 4.0+ average rating for community content
-- 3+ imports per shared label on average
+- 3+ imports per shared deck on average
 
 ---
 

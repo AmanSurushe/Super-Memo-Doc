@@ -47,7 +47,7 @@ POST /api/cards/generate-from-sources
 **Enable selective knowledge sharing with quality assurance:**
 
 **Privacy-First Approach:**
-- **Label-Based Sharing**: Users control which topics to share publicly
+- **Deck-Based Sharing**: Users control which topics to share publicly
 - **Granular Control**: Individual cards within shared topics can remain private
 - **Team vs Community**: Separate sharing levels for internal teams vs public community
 
@@ -136,9 +136,9 @@ POST /api/cards/generate-from-sources
 - **50% reduction** in time spent re-researching technical information (user surveys)
 
 ### Community Growth (Month 6-12)
-- **70% of users** contribute at least one public label within 60 days
+- **70% of users** contribute at least one public deck within 60 days
 - **4.0+ average rating** for community-shared content
-- **3+ team member imports** per shared label on average
+- **3+ team member imports** per shared deck on average
 
 ### Quality Assurance (Ongoing)
 - **0.8+ average AI quality score** for generated content

@@ -1,6 +1,6 @@
 # Community Features Specification
 
-Detailed specifications for collaborative learning features including label-based sharing, peer rating systems, content verification, and contributor recognition while maintaining privacy and quality standards.
+Detailed specifications for collaborative learning features including deck-based sharing, peer rating systems, content verification, and contributor recognition while maintaining privacy and quality standards.
 
 ## Overview
 
@@ -9,9 +9,9 @@ The community features transform individual learning into collaborative team kno
 ## Core Principles
 
 ### Privacy-First Design
-- **Default Private**: All cards and labels are private by default
+- **Default Private**: All cards and decks are private by default
 - **Explicit Consent**: Sharing requires deliberate user action
-- **Granular Control**: Users control sharing at the label level with individual card exclusions
+- **Granular Control**: Users control sharing at the deck level with individual card exclusions
 - **Revocable Sharing**: Users can make shared content private at any time
 
 ### Quality Assurance
@@ -28,10 +28,10 @@ The community features transform individual learning into collaborative team kno
 
 ---
 
-## Feature 1: Label-Based Privacy System 🔒
+## Feature 1: Deck-Based Privacy System 🔒
 
 ### Purpose
-Enable users to selectively share entire categories of cards while maintaining privacy for personal content, with granular control over individual cards within shared labels.
+Enable users to selectively share entire categories of cards while maintaining privacy for personal content, with granular control over individual cards within shared decks.
 
 ### Privacy Levels
 ```typescript
@@ -41,11 +41,11 @@ enum PrivacyLevel {
   COMMUNITY = 'community'    // Publicly available to all users
 }
 
-interface LabelPrivacySettings {
+interface DeckPrivacySettings {
   userId: number;
-  label: string;
+  deck: string;
   privacyLevel: PrivacyLevel;
-  cardCount: number;          // Total cards in this label
+  cardCount: number;          // Total cards in this deck
   sharedCardCount: number;    // Cards actually shared (excludes individually private cards)
   excludedCardIds: number[];  // Individual cards excluded from sharing
   createdAt: Date;
@@ -55,19 +55,19 @@ interface LabelPrivacySettings {
 
 ### User Experience Flow
 
-#### Setting Label Privacy
-1. **Privacy Dashboard**: User navigates to "Label Privacy Settings"
-2. **Label Overview**: Display all labels with current privacy levels and card counts
+#### Setting Deck Privacy
+1. **Privacy Dashboard**: User navigates to "Deck Privacy Settings"
+2. **Deck Overview**: Display all decks with current privacy levels and card counts
 3. **Privacy Selection**: Click to change privacy level (Private → Team → Community)
 4. **Impact Preview**: Show how many cards will be affected by privacy change
 5. **Confirmation**: Confirm sharing decision with clear impact statement
-6. **Individual Exclusions**: Option to exclude specific cards from shared labels
+6. **Individual Exclusions**: Option to exclude specific cards from shared decks
 
 #### Privacy Management Interface
 ```typescript
 interface PrivacyManagementUI {
-  labelSummary: Array<{
-    label: string;
+  deckSummary: Array<{
+    deck: string;
     cardCount: number;
     privacyLevel: PrivacyLevel;
     sharedCount: number;
@@ -80,8 +80,8 @@ interface PrivacyManagementUI {
   }>;
   
   bulkOperations: {
-    setMultipleLabelsPrivate: (labels: string[]) => void;
-    setMultipleLabelsPublic: (labels: string[]) => void;
+    setMultipleDecksPrivate: (decks: string[]) => void;
+    setMultipleDecksPublic: (decks: string[]) => void;
     excludeCardsFromSharing: (cardIds: number[]) => void;
   };
   
@@ -101,16 +101,16 @@ interface PrivacyManagementUI {
 
 #### Database Schema
 ```sql
--- Label privacy settings
-CREATE TABLE label_privacy_settings (
+-- Deck privacy settings
+CREATE TABLE deck_privacy_settings (
   id SERIAL PRIMARY KEY,
   user_id INTEGER REFERENCES users(id) ON DELETE CASCADE,
-  label VARCHAR(255) NOT NULL,
+  deck VARCHAR(255) NOT NULL,
   privacy_level VARCHAR(20) DEFAULT 'private',
   excluded_card_ids INTEGER[] DEFAULT '{}', -- Individual cards excluded from sharing
   created_at TIMESTAMP DEFAULT NOW(),
   updated_at TIMESTAMP DEFAULT NOW(),
-  UNIQUE(user_id, label)
+  UNIQUE(user_id, deck)
 );
 
 -- Enhanced cards table for sharing
@@ -119,19 +119,19 @@ ALTER TABLE cards ADD COLUMN shared_at TIMESTAMP;
 ALTER TABLE cards ADD COLUMN community_views INTEGER DEFAULT 0;
 
 -- Indexes for performance
-CREATE INDEX idx_label_privacy_user_level ON label_privacy_settings(user_id, privacy_level);
-CREATE INDEX idx_cards_community_shared ON cards(is_community_shared, label) WHERE is_community_shared = true;
+CREATE INDEX idx_deck_privacy_user_level ON deck_privacy_settings(user_id, privacy_level);
+CREATE INDEX idx_cards_community_shared ON cards(is_community_shared, deck) WHERE is_community_shared = true;
 ```
 
 #### API Endpoints
 ```typescript
 // Get user's privacy settings
-GET /api/privacy/labels
+GET /api/privacy/decks
 Authorization: Bearer <jwt_token>
 
 Response: {
-  labelSettings: Array<{
-    label: string;
+  deckSettings: Array<{
+    deck: string;
     privacyLevel: PrivacyLevel;
     cardCount: number;
     sharedCardCount: number;
@@ -143,16 +143,16 @@ Response: {
     };
   }>;
   summary: {
-    totalLabels: number;
-    privateLabels: number;
-    teamLabels: number;
-    communityLabels: number;
+    totalDecks: number;
+    privateDecks: number;
+    teamDecks: number;
+    communityDecks: number;
     totalSharedCards: number;
   };
 }
 
-// Update label privacy level
-PUT /api/privacy/labels/{label}
+// Update deck privacy level
+PUT /api/privacy/decks/{deck}
 Authorization: Bearer <jwt_token>
 Content-Type: application/json
 
@@ -172,12 +172,12 @@ Response: {
 }
 
 // Bulk privacy operations
-POST /api/privacy/labels/bulk-update
+POST /api/privacy/decks/bulk-update
 Authorization: Bearer <jwt_token>
 
 Request: {
   operations: Array<{
-    label: string;
+    deck: string;
     privacyLevel: PrivacyLevel;
     excludedCardIds?: number[];
   }>;
@@ -186,7 +186,7 @@ Request: {
 Response: {
   success: boolean;
   results: Array<{
-    label: string;
+    deck: string;
     success: boolean;
     affectedCards: number;
     error?: string;
@@ -401,7 +401,7 @@ interface RatingAnalytics {
   
   // For the community
   communityInsights: {
-    highestRatedCards: Array<{cardId: number, rating: number, label: string}>;
+    highestRatedCards: Array<{cardId: number, rating: number, deck: string}>;
     mostRatedCards: Array<{cardId: number, ratingCount: number}>;
     trendingTags: Array<{tag: string, growth: number}>;
     qualityTrends: {
@@ -426,7 +426,7 @@ Enable users to efficiently discover high-quality community content through powe
 interface CommunitySearchFilters {
   // Content filters
   query?: string; // Full-text search across questions and answers
-  labels?: string[]; // Filter by specific topics/categories
+  decks?: string[]; // Filter by specific topics/categories
   sourceTypes?: ContentSourceType[]; // Filter by how cards were created
   
   // Quality filters
@@ -460,7 +460,7 @@ interface SearchResults {
     id: number;
     frontContent: string;
     backContent: string;
-    label: string;
+    deck: string;
     creator: {
       username: string;
       verified: boolean;
@@ -491,7 +491,7 @@ interface SearchResults {
   
   aggregations: {
     totalResults: number;
-    availableLabels: Array<{label: string, count: number}>;
+    availableDecks: Array<{deck: string, count: number}>;
     ratingDistribution: {[rating: string]: number};
     popularTags: Array<{tag: string, count: number}>;
     sourceTypeDistribution: {[type: string]: number};
@@ -499,7 +499,7 @@ interface SearchResults {
   
   suggestions: {
     relatedQueries: string[];
-    recommendedLabels: string[];
+    recommendedDecks: string[];
     similarUsers: Array<{username: string, sharedInterests: string[]}>;
   };
 }
@@ -522,7 +522,7 @@ interface RecommendationEngine {
 }
 
 interface RecommendationSet {
-  forYou: Card[]; // Based on user's labels and activity
+  forYou: Card[]; // Based on user's decks and activity
   trending: Card[]; // Currently popular content
   similarUsers: Card[]; // What similar users are studying
   newHighQuality: Card[]; // Recently added high-quality content
@@ -539,7 +539,7 @@ Authorization: Bearer <jwt_token>
 
 Query Parameters: {
   q?: string; // Search query
-  labels?: string; // Comma-separated list
+  decks?: string; // Comma-separated list
   minRating?: number;
   sourceTypes?: string; // Comma-separated list
   sort?: 'relevance' | 'rating' | 'recent' | 'popular' | 'trending';
@@ -567,7 +567,7 @@ Request: {
     userPreferences?: {
       preferredDifficulty: string;
       interestAreas: string[];
-      excludeLabels: string[];
+      excludeDecks: string[];
     };
   };
 }
@@ -582,14 +582,14 @@ Response: SearchResults & {
 ```sql
 -- Full-text search indexes
 CREATE INDEX idx_cards_fulltext ON cards USING GIN(to_tsvector('english', front_content || ' ' || back_content));
-CREATE INDEX idx_cards_label_rating ON cards(label, community_rating) WHERE is_community_shared = true;
+CREATE INDEX idx_cards_deck_rating ON cards(deck, community_rating) WHERE is_community_shared = true;
 CREATE INDEX idx_cards_quality_rating ON cards(ai_quality_metrics, community_rating) WHERE is_community_shared = true;
 
 -- Materialized view for trending content
 CREATE MATERIALIZED VIEW trending_cards AS
 SELECT 
   card_id,
-  label,
+  deck,
   community_rating,
   community_views,
   import_count,
@@ -624,7 +624,7 @@ interface ImportSelection {
   cards: Array<{
     communityCardId: number;
     selected: boolean;
-    targetLabel: string; // User's personal label for imported card
+    targetDeck: string; // User's personal deck for imported card
     customizations?: {
       addPersonalNotes?: string; // Additional context for personal use
       adjustDifficulty?: number; // Override estimated difficulty
@@ -633,8 +633,8 @@ interface ImportSelection {
   }>;
   
   importSettings: {
-    preserveOriginalLabels: boolean;
-    createNewLabelsIfNeeded: boolean;
+    preserveOriginalDecks: boolean;
+    createNewDecksIfNeeded: boolean;
     notifyOriginalCreator: boolean; // Thank the creator for useful content
     addToReviewQueue: boolean; // Start reviewing immediately
   };
@@ -644,7 +644,7 @@ interface ImportResult {
   successfulImports: Array<{
     originalCardId: number;
     newCardId: number;
-    assignedLabel: string;
+    assignedDeck: string;
     nextReviewDate: Date;
   }>;
   
@@ -658,7 +658,7 @@ interface ImportResult {
     totalAttempted: number;
     successful: number;
     failed: number;
-    newLabelsCreated: string[];
+    newDecksCreated: string[];
     addedToReviewQueue: number;
   };
 }
@@ -688,7 +688,7 @@ interface ImportedCardInitialization {
   // Personal customizations
   personalizations: {
     personalNotes?: string;
-    customLabel: string;
+    customDeck: string;
     userDifficultyOverride?: number;
     importReason?: string; // Why user imported this card
   };
@@ -733,7 +733,7 @@ Authorization: Bearer <jwt_token>
 Request: {
   imports: Array<{
     cardId: number;
-    targetLabel: string;
+    targetDeck: string;
     personalNotes?: string;
     customDifficulty?: number;
     importReason?: string;
@@ -758,11 +758,11 @@ Response: {
       id: number;
       frontContent: string;
       creator: string;
-      label: string;
+      deck: string;
     };
     yourCard: {
       id: number;
-      label: string;
+      deck: string;
       nextReviewDate: Date;
       currentInterval: number;
     };
@@ -803,7 +803,7 @@ Response: {
       cardId: number;
       importCount: number;
       averageRating: number;
-      label: string;
+      deck: string;
     }>;
   };
 }
@@ -899,7 +899,7 @@ interface UserReputation {
     averageAIQuality: number;
     consistentQuality: boolean; // Maintains quality over time
     expertiseAreas: Array<{
-      label: string;
+      deck: string;
       cardCount: number;
       averageRating: number;
       recognizedExpert: boolean; // Community recognition
@@ -999,7 +999,7 @@ CREATE TABLE user_reputation (
   helpful_feedback_count INTEGER DEFAULT 0,
   level INTEGER DEFAULT 1,
   badges JSONB DEFAULT '[]', -- Array of badge IDs
-  expertise_areas JSONB DEFAULT '{}', -- {label: {cardCount, avgRating, expert}}
+  expertise_areas JSONB DEFAULT '{}', -- {deck: {cardCount, avgRating, expert}}
   last_updated TIMESTAMP DEFAULT NOW()
 );
 
